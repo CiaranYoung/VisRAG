@@ -2,7 +2,10 @@ name: Package and Release Conda Environment
 
 on:
   workflow_dispatch:
-  
+  push:
+    tags:
+      - 'v*'  # 例如，v1.0, v2.0 等
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -36,12 +39,11 @@ jobs:
         conda activate VisRAG
         conda pack -n VisRAG -o VisRAG_env.tar.gz
 
-    - name: 上传环境到 GitHub Release
-      uses: softprops/action-gh-release@v2  # 使用有效的发布 Action 版本
+    - name: 创建 GitHub Release
+      uses: ncipollo/release-action@v1  # 使用有效的发布 Action 版本
       with:
-        tag_name: ${{ github.ref_name }}
+        tag: ${{ github.ref_name }}
         name: VisRAG Environment for ${{ github.ref_name }}
-        body: "Conda environment package for version ${{ github.ref_name }}"
         files: VisRAG_env.tar.gz
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
