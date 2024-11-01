@@ -35,17 +35,10 @@ jobs:
         conda install -c nvidia/label/cuda-11.8.0 cuda-toolkit -y
         conda install -c conda-forge conda-pack -y
         pip install -r requirements.txt
-        pip install -e .
+        pip install .
         cd timm_modified
-        pip install -e .
+        pip install .
         cd ..
-
-    - name: 重新安装非可编辑模式的包
-      run: |
-        conda run -n VisRAG pip uninstall -y your_package_name  # 卸载可编辑模式的包
-        conda run -n VisRAG pip uninstall -y timm_modified     # 卸载另一个可编辑包
-        conda run -n VisRAG pip install src/                  # 以普通模式重新安装
-        conda run -n VisRAG pip install timm_modified/        # 重新安装
 
     - name: 打包 Conda 环境
       run: |
