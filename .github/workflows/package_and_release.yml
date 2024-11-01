@@ -2,27 +2,23 @@ name: Package and Release Conda Environment
 
 on:
   workflow_dispatch:
-  push:
-    tags:
-      - 'v*'  # Trigger on version tags like v1.0, v2.0, etc.
-
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v3  # Updated to v3
+      uses: actions/checkout@v3  # 使用最新的v3版本
 
     - name: Set up Python
-      uses: actions/setup-python@v4  # Updated to v4
+      uses: actions/setup-python@v4  # 使用v4版本
       with:
         python-version: '3.10.8'
 
     - name: Install Miniconda
-      uses: conda-incubator/setup-miniconda@v3  # Updated to v3
+      uses: conda-incubator/setup-miniconda@v3  # 使用v3版本
       with:
-        miniforge-variant: Miniforge  # Switched to Miniforge as Mambaforge is deprecated
+        miniforge-variant: Miniforge  # 使用Miniforge代替Mambaforge
         python-version: '3.10'
 
     - name: Create and activate conda environment
@@ -45,7 +41,7 @@ jobs:
         conda pack -n VisRAG -o VisRAG_env.tar.gz
 
     - name: Upload environment to GitHub Release
-      uses: ncipollo/release-action@v1
+      uses: ncipollo/release-action@v1.11.7  # 使用已发布的最新版本
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         tag: ${{ github.ref_name }}
