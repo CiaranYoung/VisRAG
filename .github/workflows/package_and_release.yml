@@ -1,9 +1,7 @@
 name: Package and Release Conda Environment
 
 on:
-  push:
-    tags:
-      - 'v*'  # 当有新的版本标签推送时触发
+  workflow_dispatch:
 
 jobs:
   build:
