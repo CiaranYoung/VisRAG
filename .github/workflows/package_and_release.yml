@@ -1,0 +1,52 @@
+name: Package and Release Conda Environment
+
+on:
+  push:
+    tags:
+      - 'v*'  # 当有新的版本标签推送时触发
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.10.8'
+
+    - name: Install Miniconda
+      uses: conda-incubator/setup-miniconda@v2
+      with:
+        miniforge-variant: Mambaforge  # 或者 Miniforge，根据系统需求
+        python-version: '3.10'
+
+    - name: Create and activate conda environment
+      run: |
+        conda create --name VisRAG python=3.10.8 -y
+        conda activate VisRAG
+        conda install -c nvidia/label/cuda-11.8.0 cuda-toolkit -y
+
+    - name: Install pip dependencies
+      run: |
+        pip install -r requirements.txt
+        pip install -e .
+        cd timm_modified
+        pip install -e .
+        cd ..
+
+    - name: Package the environment with conda-pack
+      run: |
+        pip install conda-pack
+        conda pack -n VisRAG -o VisRAG_env.tar.gz
+
+    - name: Upload environment to GitHub Release
+      uses: ncipollo/release-action@v1
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        tag: ${{ github.ref_name }}
+        name: VisRAG Environment for v${{ github.ref_name }}
+        files: VisRAG_env.tar.gz
