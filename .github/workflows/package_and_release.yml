@@ -43,8 +43,7 @@ jobs:
 
     - name: 打包 Conda 环境
       run: |
-        conda activate VisRAG
-        conda pack -n VisRAG -o VisRAG_env.tar.gz
+        conda run -n VisRAG conda pack -n VisRAG -o VisRAG_env.tar.gz
 
     - name: 上传环境到 GitHub Release
       uses: softprops/action-gh-release@v2  # 使用有效的发布 Action 版本
