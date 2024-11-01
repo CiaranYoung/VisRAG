@@ -2,6 +2,9 @@ name: Package and Release Conda Environment
 
 on:
   workflow_dispatch:
+  push:
+    tags:
+      - 'v*'  # Trigger on version tags like v1.0, v2.0, etc.
 
 jobs:
   build:
@@ -9,23 +12,23 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3  # Updated to v3
 
     - name: Set up Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4  # Updated to v4
       with:
         python-version: '3.10.8'
 
     - name: Install Miniconda
-      uses: conda-incubator/setup-miniconda@v2
+      uses: conda-incubator/setup-miniconda@v3  # Updated to v3
       with:
-        miniforge-variant: Mambaforge  # 或者 Miniforge，根据系统需求
+        miniforge-variant: Miniforge  # Switched to Miniforge as Mambaforge is deprecated
         python-version: '3.10'
 
     - name: Create and activate conda environment
       run: |
         conda create --name VisRAG python=3.10.8 -y
-        conda activate VisRAG
+        source activate VisRAG
         conda install -c nvidia/label/cuda-11.8.0 cuda-toolkit -y
 
     - name: Install pip dependencies
