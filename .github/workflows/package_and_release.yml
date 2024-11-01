@@ -21,9 +21,11 @@ jobs:
         python-version: '3.10.8'
         installer-url: "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh"
 
-    - name: 创建 conda 环境并安装依赖
+    - name: 设置并安装依赖
       run: |
         conda create --name VisRAG python=3.10.8 -y
+        conda init bash
+        source ~/.bashrc
         conda activate VisRAG
         conda install -c nvidia/label/cuda-11.8.0 cuda-toolkit -y
         conda install -c conda-forge conda-pack -y
@@ -32,6 +34,7 @@ jobs:
         cd timm_modified
         pip install -e .
         cd ..
+
 
     - name: 打包 Conda 环境
       run: |
