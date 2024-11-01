@@ -2,48 +2,46 @@ name: Package and Release Conda Environment
 
 on:
   workflow_dispatch:
+  
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3  # 使用最新的v3版本
+    - name: 检出存储库
+      uses: actions/checkout@v4  # 使用最新的v4版本
 
-    - name: Set up Python
-      uses: actions/setup-python@v4  # 使用v4版本
+    - name: 安装 Miniconda
+      uses: conda-incubator/setup-miniconda@v3
       with:
-        python-version: '3.10.8'
+        miniforge-variant: Miniforge  # 使用 Miniforge 代替 Mambaforge
+        python-version: '3.10.8'      # 统一 Python 版本
+        auto-update-conda: true        # 自动更新 Conda（可选）
+        activate-environment: false    # 手动激活环境
 
-    - name: Install Miniconda
-      uses: conda-incubator/setup-miniconda@v3  # 使用v3版本
-      with:
-        miniforge-variant: Miniforge  # 使用Miniforge代替Mambaforge
-        python-version: '3.10'
-
-    - name: Create and activate conda environment
+    - name: 创建 conda 环境并安装依赖
       run: |
         conda create --name VisRAG python=3.10.8 -y
-        source activate VisRAG
+        conda activate VisRAG
         conda install -c nvidia/label/cuda-11.8.0 cuda-toolkit -y
-
-    - name: Install pip dependencies
-      run: |
+        conda install -c conda-forge conda-pack -y
         pip install -r requirements.txt
         pip install -e .
         cd timm_modified
         pip install -e .
         cd ..
 
-    - name: Package the environment with conda-pack
+    - name: 打包 Conda 环境
       run: |
-        pip install conda-pack
+        conda activate VisRAG
         conda pack -n VisRAG -o VisRAG_env.tar.gz
 
-    - name: Upload environment to GitHub Release
-      uses: ncipollo/release-action@v1.11.7  # 使用已发布的最新版本
+    - name: 上传环境到 GitHub Release
+      uses: softprops/action-gh-release@v2  # 使用有效的发布 Action 版本
       with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        tag: ${{ github.ref_name }}
-        name: VisRAG Environment for v${{ github.ref_name }}
+        tag_name: ${{ github.ref_name }}
+        name: VisRAG Environment for ${{ github.ref_name }}
+        body: "Conda environment package for version ${{ github.ref_name }}"
         files: VisRAG_env.tar.gz
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
