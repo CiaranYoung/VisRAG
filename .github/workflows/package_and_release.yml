@@ -11,6 +11,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - name: 初始磁盘空间检查
+      run: |
+        echo "=== 系统磁盘使用情况 ==="
+        df -h
+        echo "=== /mnt 目录使用情况 ==="
+        du -sh /mnt/* 2>/dev/null || true
+        echo "=== 当前目录使用情况 ==="
+        du -sh ./* 2>/dev/null || true
+        
     - name: 检出存储库
       uses: actions/checkout@v4  # 使用最新的v4版本
 
@@ -19,15 +28,23 @@ jobs:
         sudo mkdir -p /mnt/miniconda
         sudo chmod 777 /mnt/miniconda
         ls -ld /mnt/miniconda
+        echo "=== 创建目录后的磁盘空间 ==="
+        df -h
 
     - name: 下载 Miniconda 安装脚本
       run: |
         wget -P /mnt/miniconda https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
-
+        echo "=== Miniconda下载后的磁盘空间 ==="
+        df -h
+        du -sh /mnt/miniconda/*
+        
     - name: 安装 Miniconda
       run: |
         bash /mnt/miniconda/Miniconda3-latest-Linux-x86_64.sh -b -p /mnt/miniconda/miniconda3
-
+        echo "=== Miniconda安装后的磁盘空间 ==="
+        df -h
+        du -sh /mnt/miniconda/*
+        
     - name: 配置 Conda
       run: |
         source /mnt/miniconda/miniconda3/etc/profile.d/conda.sh
@@ -44,11 +61,17 @@ jobs:
 
     - name: 清理 Docker 和 Conda 缓存
       run: |
+        echo "=== 清理前的磁盘空间 ==="
+        df -h
         docker system prune -af || true
         conda clean -a -y
+        echo "=== 清理后的磁盘空间 ==="
+        df -h
 
     - name: 设置并安装依赖
       run: |
+        echo "=== 安装依赖前的磁盘空间 ==="
+        df -h
         conda create --prefix /mnt/miniconda/miniconda3/envs/VisRAG python=3.10.8 -y
         # conda activate /mnt/miniconda/miniconda3/envs/VisRAG
         # conda init bash
@@ -67,12 +90,20 @@ jobs:
         # pip install .
         conda run --prefix /mnt/miniconda/miniconda3/envs/VisRAG pip install .
         cd ..
+        echo "=== 安装依赖后的磁盘空间 ==="
+        df -h
+        du -sh /mnt/miniconda/miniconda3/envs/VisRAG
 
     - name: 打包 Conda 环境
       run: |
         # conda run -n VisRAG conda pack -n VisRAG -o VisRAG_env.tar.gz
+        echo "=== 打包前的磁盘空间 ==="
+        df -h
         conda run --prefix /mnt/miniconda/miniconda3/envs/VisRAG conda pack -p /mnt/miniconda/miniconda3/envs/VisRAG -o /mnt/VisRAG_env.tar.gz
-
+        echo "=== 打包后的磁盘空间 ==="
+        df -h
+        ls -lh /mnt/VisRAG_env.tar.gz
+        
     - name: 上传环境到 GitHub Release
       uses: softprops/action-gh-release@v2  # 使用有效的发布 Action 版本
       with:
@@ -82,3 +113,11 @@ jobs:
         files: /mnt/VisRAG_env.tar.gz
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: 最终磁盘空间检查
+      if: always()
+      run: |
+        echo "=== 最终磁盘使用情况 ==="
+        df -h
+        echo "=== /mnt 目录最终使用情况 ==="
+        du -sh /mnt/* 2>/dev/null || true
