@@ -20,13 +20,27 @@ jobs:
         sudo chmod 777 /mnt/miniconda
         ls -ld /mnt/miniconda
 
+    - name: 下载 Miniconda 安装脚本
+      run: |
+        wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
+
     - name: 安装 Miniconda
-      uses: conda-incubator/setup-miniconda@v3
-      with:
-        miniforge-variant: Miniforge
-        python-version: '3.10.8'
-        base-environment-directory: '/mnt/miniconda'
-        installer-url: "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh"
+      run: |
+        bash miniconda.sh -b -p ${{ github.workspace }}/miniconda
+        echo "${{ github.workspace }}/miniconda/bin" >> $GITHUB_PATH
+
+    - name: 配置 Conda
+      run: |
+        conda config --add envs_dirs /mnt/miniconda/envs
+        conda config --set pkgs_dirs /mnt/miniconda/pkgs
+
+    # - name: 安装 Miniconda
+    #   uses: conda-incubator/setup-miniconda@v3
+    #   with:
+    #     miniforge-variant: Miniforge
+    #     python-version: '3.10.8'
+    #     base-environment-directory: '/mnt/miniconda'
+    #     installer-url: "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh"
         # auto-activate-base: false
 
     - name: 清理 Docker 和 Conda 缓存
