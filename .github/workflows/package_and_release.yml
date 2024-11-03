@@ -99,20 +99,78 @@ jobs:
         # conda run -n VisRAG conda pack -n VisRAG -o VisRAG_env.tar.gz
         echo "=== 打包前的磁盘空间 ==="
         df -h
-        conda run --prefix /mnt/miniconda/miniconda3/envs/VisRAG conda pack -p /mnt/miniconda/miniconda3/envs/VisRAG -o /mnt/VisRAG_env.tar.gz
-        echo "=== 打包后的磁盘空间 ==="
+        conda run conda pack -p /mnt/miniconda/miniconda3/envs/VisRAG -o /mnt/miniconda/VisRAG_env.tar.gz
         df -h
         ls -lh /mnt/VisRAG_env.tar.gz
+
+    - name: 检查文件大小并处理
+      run: |
+        FILE_SIZE=$(stat -f %z /mnt/miniconda/VisRAG_env.tar.gz)
+        SIZE_2GB=2147483648  # 2GB in bytes
         
-    - name: 上传环境到 GitHub Release
-      uses: softprops/action-gh-release@v2  # 使用有效的发布 Action 版本
+        if [ $FILE_SIZE -gt $SIZE_2GB ]; then
+          # 如果大于2GB，需要分割
+          TOTAL_PARTS=$(( ($FILE_SIZE + $SIZE_2GB - 1) / $SIZE_2GB ))  # 向上取整计算需要的部分数
+          echo "需要分割成 $TOTAL_PARTS 个部分"
+          
+          # 循环分割文件
+          for ((i=1; i<=$TOTAL_PARTS; i++)); do
+            if [ $i -lt $TOTAL_PARTS ]; then
+              # 不是最后一个文件，分割2GB
+              dd if=/mnt/miniconda/VisRAG_env.tar.gz of=/mnt/miniconda/VisRAG_env.tar.gz.part$i bs=1M count=2048 skip=$(((i-1)*2048))
+            else
+              # 最后一个文件，获取剩余部分
+              dd if=/mnt/miniconda/VisRAG_env.tar.gz of=/mnt/miniconda/VisRAG_env.tar.gz.part$i bs=1M skip=$(((i-1)*2048))
+            fi
+          done
+          
+          # 生成合并命令
+          MERGE_PARTS=$(ls /mnt/miniconda/VisRAG_env.tar.gz.part* | sort -V | tr '\n' ' ')
+          echo "MERGE_CMD=cat $MERGE_PARTS > VisRAG_env.tar.gz" >> $GITHUB_ENV
+          echo "SPLIT_FILE=true" >> $GITHUB_ENV
+          echo "TOTAL_PARTS=$TOTAL_PARTS" >> $GITHUB_ENV
+        else
+          # 如果小于2GB，直接上传
+          echo "SPLIT_FILE=false" >> $GITHUB_ENV
+        fi
+
+    - name: 上传完整文件到 Release (小于2GB)
+      if: env.SPLIT_FILE == 'false'
+      uses: softprops/action-gh-release@v2
       with:
         tag_name: ${{ github.ref_name }}
         name: VisRAG Environment for ${{ github.ref_name }}
         body: "Conda environment package for version ${{ github.ref_name }}"
-        files: /mnt/VisRAG_env.tar.gz
+        files: /mnt/miniconda/VisRAG_env.tar.gz
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: 上传分割文件到 Release (大于2GB)
+      if: env.SPLIT_FILE == 'true'
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: ${{ github.ref_name }}
+        name: VisRAG Environment for ${{ github.ref_name }}
+        body: |
+          Conda environment package for version ${{ github.ref_name }}
+          File has been split into ${{ env.TOTAL_PARTS }} parts due to size limitations.
+          Please download all parts and combine them using:
+          ```bash
+          ${{ env.MERGE_CMD }}
+          ```
+        files: /mnt/miniconda/VisRAG_env.tar.gz.part*
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
+    # - name: 上传环境到 GitHub Release
+    #   uses: softprops/action-gh-release@v2  # 使用有效的发布 Action 版本
+    #   with:
+    #     tag_name: ${{ github.ref_name }}
+    #     name: VisRAG Environment for ${{ github.ref_name }}
+    #     body: "Conda environment package for version ${{ github.ref_name }}"
+    #     files: /mnt/miniconda/VisRAG_env.tar.gz
+    #   env:
+    #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         
     - name: 最终磁盘空间检查
       if: always()
