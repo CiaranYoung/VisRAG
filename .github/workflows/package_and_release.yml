@@ -22,17 +22,17 @@ jobs:
 
     - name: 下载 Miniconda 安装脚本
       run: |
-        wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
+        wget -P /mnt/miniconda https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
 
     - name: 安装 Miniconda
       run: |
-        bash miniconda.sh -b -p ${{ github.workspace }}/miniconda
-        echo "${{ github.workspace }}/miniconda/bin" >> $GITHUB_PATH
+        bash /mnt/miniconda/Miniconda3-latest-Linux-x86_64.sh -b -p /mnt/miniconda/miniconda3
 
     - name: 配置 Conda
       run: |
-        conda config --add envs_dirs /mnt/miniconda/envs
-        conda config --set pkgs_dirs /mnt/miniconda/pkgs
+        echo "source /mnt/miniconda/miniconda3/etc/profile.d/conda.sh" >> $GITHUB_ENV
+        source /mnt/miniconda/miniconda3/etc/profile.d/conda.sh
+        conda init bash
 
     # - name: 安装 Miniconda
     #   uses: conda-incubator/setup-miniconda@v3
@@ -50,12 +50,12 @@ jobs:
 
     - name: 设置并安装依赖
       run: |
-        conda create --prefix /mnt/miniconda/envs/VisRAG python=3.10.8 -y
-        echo "/mnt/miniconda/envs/VisRAG" >> $GITHUB_PATH
+        conda create --prefix /mnt/miniconda/miniconda3/envs/VisRAG python=3.10.8 -y
+        echo "/mnt/miniconda/miniconda3/envs/VisRAG" >> $GITHUB_PATH
         # conda init bash
         # source ~/.bashrc
         # conda activate VisRAG
-        source /mnt/miniconda/envs/VisRAG/bin/activate
+        source /mnt/miniconda/miniconda3/envs/VisRAG/bin/activate
         conda install -c nvidia/label/cuda-11.8.0 cuda-toolkit -y
         conda install -c conda-forge conda-pack -y
         pip install -r requirements.txt
@@ -67,7 +67,7 @@ jobs:
     - name: 打包 Conda 环境
       run: |
         # conda run -n VisRAG conda pack -n VisRAG -o VisRAG_env.tar.gz
-        conda run --prefix /mnt/miniconda/envs/VisRAG conda pack -p /mnt/miniconda/envs/VisRAG -o /mnt/VisRAG_env.tar.gz
+        conda run --prefix /mnt/miniconda/miniconda3/envs/VisRAG conda pack -p /mnt/miniconda/miniconda3/envs/VisRAG -o /mnt/VisRAG_env.tar.gz
 
     - name: 上传环境到 GitHub Release
       uses: softprops/action-gh-release@v2  # 使用有效的发布 Action 版本
