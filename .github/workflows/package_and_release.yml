@@ -50,17 +50,22 @@ jobs:
     - name: 设置并安装依赖
       run: |
         conda create --prefix /mnt/miniconda/miniconda3/envs/VisRAG python=3.10.8 -y
-        conda activate /mnt/miniconda/miniconda3/envs/VisRAG
+        # conda activate /mnt/miniconda/miniconda3/envs/VisRAG
         # conda init bash
         # source ~/.bashrc
         # conda activate VisRAG
         # source /mnt/miniconda/miniconda3/envs/VisRAG/bin/activate
-        conda install -c nvidia/label/cuda-11.8.0 cuda-toolkit -y
-        conda install -c conda-forge conda-pack -y
-        pip install -r requirements.txt
-        pip install .
+        # conda install -c nvidia/label/cuda-11.8.0 cuda-toolkit -y
+        # conda install -c conda-forge conda-pack -y
+        # pip install -r requirements.txt
+        # pip install .
+        conda run --prefix /mnt/miniconda/miniconda3/envs/VisRAG conda install -c nvidia/label/cuda-11.8.0 cuda-toolkit -y
+        conda run --prefix /mnt/miniconda/miniconda3/envs/VisRAG conda install -c conda-forge conda-pack -y
+        conda run --prefix /mnt/miniconda/miniconda3/envs/VisRAG pip install -r requirements.txt
+        conda run --prefix /mnt/miniconda/miniconda3/envs/VisRAG pip install .
         cd timm_modified
-        pip install .
+        # pip install .
+        conda run --prefix /mnt/miniconda/miniconda3/envs/VisRAG pip install .
         cd ..
 
     - name: 打包 Conda 环境
