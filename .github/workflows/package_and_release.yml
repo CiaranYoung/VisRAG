@@ -30,7 +30,6 @@ jobs:
 
     - name: 配置 Conda
       run: |
-        echo "source /mnt/miniconda/miniconda3/etc/profile.d/conda.sh" >> $GITHUB_ENV
         source /mnt/miniconda/miniconda3/etc/profile.d/conda.sh
         conda init bash
 
@@ -51,11 +50,11 @@ jobs:
     - name: 设置并安装依赖
       run: |
         conda create --prefix /mnt/miniconda/miniconda3/envs/VisRAG python=3.10.8 -y
-        echo "/mnt/miniconda/miniconda3/envs/VisRAG" >> $GITHUB_PATH
+        conda activate /mnt/miniconda/miniconda3/envs/VisRAG
         # conda init bash
         # source ~/.bashrc
         # conda activate VisRAG
-        source /mnt/miniconda/miniconda3/envs/VisRAG/bin/activate
+        # source /mnt/miniconda/miniconda3/envs/VisRAG/bin/activate
         conda install -c nvidia/label/cuda-11.8.0 cuda-toolkit -y
         conda install -c conda-forge conda-pack -y
         pip install -r requirements.txt
