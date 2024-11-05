@@ -84,12 +84,12 @@ jobs:
         # pip install .
         conda run --prefix /mnt/miniconda/miniconda3/envs/VisRAG conda install -c nvidia/label/cuda-11.8.0 cuda-toolkit -y
         conda run --prefix /mnt/miniconda/miniconda3/envs/VisRAG conda install -c conda-forge conda-pack -y
-        conda run --prefix /mnt/miniconda/miniconda3/envs/VisRAG pip install -r requirements.txt
-        conda run --prefix /mnt/miniconda/miniconda3/envs/VisRAG pip install .
-        cd timm_modified
+        # conda run --prefix /mnt/miniconda/miniconda3/envs/VisRAG pip install -r requirements.txt
+        # conda run --prefix /mnt/miniconda/miniconda3/envs/VisRAG pip install .
+        # cd timm_modified
         # pip install .
-        conda run --prefix /mnt/miniconda/miniconda3/envs/VisRAG pip install .
-        cd ..
+        # conda run --prefix /mnt/miniconda/miniconda3/envs/VisRAG pip install .
+        # cd ..
         echo "=== 安装依赖后的磁盘空间 ==="
         df -h
         du -sh /mnt/miniconda/miniconda3/envs/VisRAG
