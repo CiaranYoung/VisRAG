@@ -118,10 +118,10 @@ jobs:
           for ((i=1; i<=$TOTAL_PARTS; i++)); do
             if [ $i -lt $TOTAL_PARTS ]; then
               # 不是最后一个文件，分割2GB
-              dd if=/mnt/miniconda/VisRAG_env.tar.gz of=/mnt/miniconda/VisRAG_env.tar.gz.part$i bs=1M count=2048 skip=$(((i-1)*2048))
+              dd if=/mnt/miniconda/VisRAG_env.tar.gz of=/mnt/miniconda/VisRAG_env.tar.gz.part$i bs=1M count=2047 skip=$(((i-1)*2047))
             else
               # 最后一个文件，获取剩余部分
-              dd if=/mnt/miniconda/VisRAG_env.tar.gz of=/mnt/miniconda/VisRAG_env.tar.gz.part$i bs=1M skip=$(((i-1)*2048))
+              dd if=/mnt/miniconda/VisRAG_env.tar.gz of=/mnt/miniconda/VisRAG_env.tar.gz.part$i bs=1M skip=$(((i-1)*2047))
             fi
           done
           
