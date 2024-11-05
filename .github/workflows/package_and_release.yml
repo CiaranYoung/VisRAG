@@ -106,7 +106,7 @@ jobs:
 
     - name: 检查文件大小并处理
       run: |
-        FILE_SIZE=$(stat -f %z /mnt/miniconda/VisRAG_env.tar.gz)
+        FILE_SIZE=$(stat -c %s /mnt/miniconda/VisRAG_env.tar.gz)
         SIZE_2GB=2147483648  # 2GB in bytes
         
         if [ $FILE_SIZE -gt $SIZE_2GB ]; then
