@@ -11,6 +11,7 @@ from transformers import AutoTokenizer as Tokenizer_class
 from openmatch.generation_utils import get_flatten_table, preprocess_text, is_numeric_data, is_within_5_percent, horizontal_concat, vertical_concat
 from openai import OpenAI
 import pandas as pd
+from datasets import load_dataset
 
 def images_to_base64_list(image_list):
     base64_list = []
@@ -24,8 +25,8 @@ def images_to_base64_list(image_list):
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model_name', type=str, required=True) # option: MiniCPM, MiniCPMV2.0, MiniCPMV2.6, gpt4o
-    parser.add_argument('--dataset_name', type=str, required=True)
+    parser.add_argument('--model_name', type=str, required=True, choices=['MiniCPM', 'MiniCPMV2.0', 'MiniCPMV2.6', 'gpt4o'])
+    parser.add_argument('--dataset_name', type=str, choices=['ArxivQA', 'ChartQA', 'PlotQA', 'MP-DocVQA', 'SlideVQA', 'InfoVQA'], required=True)
     parser.add_argument('--rank', type=int, required=True)
     parser.add_argument('--world_size', type=int, required=True)
 
@@ -33,8 +34,8 @@ def parse_args():
     parser.add_argument('--topk', type=int)
     parser.add_argument('--results_root_dir', type=str)
     
-    parser.add_argument('--task_type', type=str, required=True) # option: text, page_concatenation, weighted_selection, multi_image
-    parser.add_argument('--concatenate_type', type=str) # option: horizontal, vertical
+    parser.add_argument('--task_type', type=str, required=True, choices=['text', 'page_concatenation', 'weighted_selection', 'multi_image'])
+    parser.add_argument('--concatenate_type', type=str, choices=['horizontal', 'vertical'])
     parser.add_argument('--ocr_type', type=str)
     args = parser.parse_args()
     return args
@@ -90,17 +91,17 @@ def main():
     # build docid->content
     content = {}
     if (task_type == 'text'):
-        df = pd.read_parquet(corpus_path)
-        for index, row in df.iterrows():
-            docid = row['corpus-id']
-            text = row['text']
-            content[docid] = text
+        corpus_ds = load_dataset(f"openbmb/VisRAG-Ret-Test-{dataset_name}", name="corpus", split="train")
+        for i in range(len(corpus_ds)):
+            corpus_id = corpus_ds[i]['corpus-id']
+            text = corpus_ds[i]['text']
+            content[corpus_id] = text
     else:
-        df = pd.read_parquet(corpus_path)
-        for index, row in df.iterrows():
-            docid = row['corpus-id']
-            raw_bytes = row['image']['bytes']
-            content[docid] = raw_bytes
+        corpus_ds = load_dataset(f"openbmb/VisRAG-Ret-Test-{dataset_name}", name="corpus", split="train")
+        for i in range(len(corpus_ds)):
+            corpus_id = corpus_ds[i]['corpus-id']
+            image = corpus_ds[i]['image'].convert('RGB')
+            content[corpus_id] = image
 
     #加载模型
     if (task_type == 'weighted_selection'):
@@ -257,9 +258,7 @@ def main():
                     continue
                     
         else:
-            image_data = [content[docid_item] for docid_item in docid]
-            image_data = [BytesIO(image_data_item) for image_data_item in image_data]
-            image_list = [Image.open(image_data_item).convert('RGB') for image_data_item in image_data]
+            image_list = [content[docid_item] for docid_item in docid]
             
             if (task_type == 'page_concatenation'):
                 if (concatenate_type not in ['horizontal', 'vertical']):
