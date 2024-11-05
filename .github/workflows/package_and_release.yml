@@ -99,7 +99,8 @@ jobs:
         # conda run -n VisRAG conda pack -n VisRAG -o VisRAG_env.tar.gz
         echo "=== 打包前的磁盘空间 ==="
         df -h
-        conda run conda pack -p /mnt/miniconda/miniconda3/envs/VisRAG -o /mnt/miniconda/VisRAG_env.tar.gz
+        # conda run conda pack -p /mnt/miniconda/miniconda3/envs/VisRAG -o /mnt/miniconda/VisRAG_env.tar.gz
+        conda run --prefix /mnt/miniconda/miniconda3/envs/VisRAG conda pack -p /mnt/miniconda/miniconda3/envs/VisRAG -o /mnt/miniconda/VisRAG_env.tar.gz
         df -h
         ls -lh /mnt/VisRAG_env.tar.gz
 
